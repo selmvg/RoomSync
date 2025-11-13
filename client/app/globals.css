@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fefdfb;
+  --foreground: #2f372f;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .gradient-primary {
+    background: linear-gradient(135deg, #f17a51 0%, #ed5a2d 100%);
+  }
+  
+  .gradient-sage {
+    background: linear-gradient(135deg, #7f8f7f 0%, #647264 100%);
+  }
+  
+  .gradient-lavender {
+    background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
+  }
+}
+

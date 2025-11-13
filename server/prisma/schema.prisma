@@ -1,0 +1,86 @@
+// This is your Prisma schema file
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// User can belong to one household
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String
+  password    String // Will be a hashed password
+  householdId String?  // Optional, can be invited
+  household   Household? @relation(fields: [householdId], references: [id], onDelete: SetNull)
+  // Chores assigned to this user
+  assignedChores Chore[]
+  // Expenses paid by this user
+  expensesPaid Expense[]
+  // This user's share of various expenses
+  expenseShares ExpenseShare[]
+}
+
+// Household has many users, chores, and expenses
+model Household {
+  id         String @id @default(uuid())
+  name       String
+  inviteCode String @unique @default(uuid()) // Easy way to invite
+  
+  members  User[]
+  chores   Chore[]
+  expenses Expense[]
+}
+
+// A task for the household
+model Chore {
+  id          String   @id @default(uuid())
+  title       String
+  isComplete  Boolean  @default(false)
+  
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  
+  // Who is responsible? Can be null (unassigned)
+  assignedToId String?
+  assignedTo   User?   @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  
+  createdAt   DateTime  @default(now())
+}
+
+// A single bill or purchase
+model Expense {
+  id          String    @id @default(uuid())
+  description String
+  amount      Decimal   // The total amount in Pesos (₱)
+  createdAt   DateTime  @default(now())
+  
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  
+  // Who paid for this?
+  paidById    String
+  paidBy      User      @relation(fields: [paidById], references: [id], onDelete: Cascade)
+  
+  // How this expense is split among users
+  shares      ExpenseShare[]
+}
+
+// This "join table" is the key to your expense splitter
+model ExpenseShare {
+  id        String   @id @default(uuid())
+  amount    Decimal  // How much this user owes for this expense
+  isSettled Boolean  @default(false) // Not in MVP, but good to have
+  
+  expenseId String
+  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  
+  userId    String  // The user who owes this share
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([expenseId, userId]) // Ensure a user can only have one share per expense
+}
+
