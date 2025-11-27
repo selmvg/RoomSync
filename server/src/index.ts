@@ -5,6 +5,9 @@ import authRoutes from './routes/auth';
 import householdRoutes from './routes/households';
 import choreRoutes from './routes/chores';
 import expenseRoutes from './routes/expenses';
+import shoppingRoutes from './routes/shopping';
+import wallRoutes from './routes/wall';
+import notificationRoutes from './routes/notifications';
 import { prisma } from './lib/prisma';
 
 dotenv.config();
@@ -46,6 +49,9 @@ app.use('/auth', authRoutes);
 app.use('/api/households', householdRoutes);
 app.use('/api/chores', choreRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api/shopping', shoppingRoutes);
+app.use('/api/wall', wallRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/health', async (req, res) => {
   try {

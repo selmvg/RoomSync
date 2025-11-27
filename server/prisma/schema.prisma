@@ -23,6 +23,18 @@ model User {
   expensesPaid Expense[]
   // This user's share of various expenses
   expenseShares ExpenseShare[]
+  
+  // Comments made by this user
+  choreComments ChoreComment[]
+  
+  // Shopping items added by this user
+  shoppingItems ShoppingItem[]
+  
+  // Wall posts by this user
+  wallPosts WallPost[]
+  
+  // Notifications for this user
+  notifications Notification[]
 }
 
 // Household has many users, chores, and expenses
@@ -34,6 +46,8 @@ model Household {
   members  User[]
   chores   Chore[]
   expenses Expense[]
+  shoppingItems ShoppingItem[]
+  wallPosts WallPost[]
 }
 
 // A task for the household
@@ -49,7 +63,23 @@ model Chore {
   assignedToId String?
   assignedTo   User?   @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
   
+  // Recurring chore settings
+  isRecurring Boolean  @default(false)
+  recurrencePattern String? // "daily", "weekly", "monthly"
+  recurrenceDayOfWeek Int? // 0-6 (Sunday-Saturday) for weekly recurrence
+  
+  // Rotation settings
+  useRotation Boolean  @default(false)
+  rotationOrder Json? // Array of user IDs in rotation order
+  
+  // Due date
+  dueDate     DateTime?
+  
   createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  
+  // Comments on this chore
+  comments    ChoreComment[]
 }
 
 // A single bill or purchase
@@ -57,6 +87,8 @@ model Expense {
   id          String    @id @default(uuid())
   description String
   amount      Decimal   // The total amount in Pesos (₱)
+  category    String?   // e.g., "Utilities", "Groceries", "Rent"
+  receiptUrl  String?   // URL to uploaded receipt image
   createdAt   DateTime  @default(now())
   
   householdId String
@@ -82,5 +114,64 @@ model ExpenseShare {
   userId    String  // The user who owes this share
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([expenseId, userId]) // Ensure a user can only have one share per expense
+}
+
+// Comments on chores
+model ChoreComment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  
+  choreId   String
+  chore     Chore    @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Shared shopping list items
+model ShoppingItem {
+  id          String   @id @default(uuid())
+  name        String
+  isPurchased Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  
+  addedById   String
+  addedBy     User     @relation(fields: [addedById], references: [id], onDelete: Cascade)
+}
+
+// Household wall posts (announcements)
+model WallPost {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+// Notifications for users
+model Notification {
+  id        String   @id @default(uuid())
+  type      String   // "expense_added", "chore_completed", "wall_post", "shopping_item_added"
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Optional reference IDs
+  relatedExpenseId String?
+  relatedChoreId   String?
+  relatedPostId    String?
+  relatedItemId    String?
 }
 

@@ -193,7 +193,7 @@ router.post('/leave', async (req: AuthRequest, res: Response) => {
       await tx.chore.updateMany({
         where: {
           assignedToId: userId,
-          householdId: user.householdId,
+          householdId: user.householdId!,
         },
         data: {
           assignedToId: null,
