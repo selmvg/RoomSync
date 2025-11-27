@@ -5,6 +5,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/api';
+import Modal from '@/components/Modal';
 
 interface Household {
   id: string;
@@ -28,6 +29,12 @@ export default function HouseholdPage() {
   const [leaving, setLeaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [leaveModalOpen, setLeaveModalOpen] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
   useEffect(() => {
     if (token) {
       fetchHousehold();
@@ -49,7 +56,8 @@ export default function HouseholdPage() {
   const handleCreateHousehold = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!householdName.trim()) {
-      alert('Please enter a household name');
+      setErrorMessage('Please enter a household name');
+      setErrorModalOpen(true);
       return;
     }
 
@@ -67,7 +75,8 @@ export default function HouseholdPage() {
       setHouseholdName('');
     } catch (error: any) {
       console.error('Failed to create household:', error);
-      alert(error.message || 'Failed to create household');
+      setErrorMessage(error.message || 'Failed to create household');
+      setErrorModalOpen(true);
     } finally {
       setCreating(false);
     }
@@ -76,7 +85,8 @@ export default function HouseholdPage() {
   const handleJoinHousehold = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteCode.trim()) {
-      alert('Please enter an invite code');
+      setErrorMessage('Please enter an invite code');
+      setErrorModalOpen(true);
       return;
     }
 
@@ -94,7 +104,8 @@ export default function HouseholdPage() {
       setInviteCode('');
     } catch (error: any) {
       console.error('Failed to join household:', error);
-      alert(error.message || 'Failed to join household');
+      setErrorMessage(error.message || 'Failed to join household');
+      setErrorModalOpen(true);
     } finally {
       setJoining(false);
     }
@@ -108,11 +119,8 @@ export default function HouseholdPage() {
     }
   };
 
-  const handleLeaveHousehold = async () => {
-    if (!confirm('Are you sure you want to leave this household? You will lose access to all chores and expenses.')) {
-      return;
-    }
-
+  const confirmLeaveHousehold = async () => {
+    setLeaveModalOpen(false);
     setLeaving(true);
     try {
       await apiRequest(
@@ -130,15 +138,20 @@ export default function HouseholdPage() {
         userData.householdId = null;
         localStorage.setItem('user', JSON.stringify(userData));
       }
-      alert('You have successfully left the household');
-      // Reload the page to update all components and context
-      window.location.reload();
+      setSuccessMessage('You have successfully left the household');
+      setSuccessModalOpen(true);
     } catch (error: any) {
       console.error('Failed to leave household:', error);
-      alert(error.message || 'Failed to leave household');
+      setErrorMessage(error.message || 'Failed to leave household');
+      setErrorModalOpen(true);
     } finally {
       setLeaving(false);
     }
+  };
+
+  const handleSuccessClose = () => {
+    setSuccessModalOpen(false);
+    window.location.reload();
   };
 
   if (loading) {
@@ -248,7 +261,7 @@ export default function HouseholdPage() {
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-display font-semibold text-sage-800">Members</h2>
                     <button
-                      onClick={handleLeaveHousehold}
+                      onClick={() => setLeaveModalOpen(true)}
                       disabled={leaving}
                       className="px-4 py-2 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 transition-all shadow-soft font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -278,6 +291,62 @@ export default function HouseholdPage() {
             )}
           </div>
         </div>
+
+        <Modal
+          isOpen={errorModalOpen}
+          onClose={() => setErrorModalOpen(false)}
+          title="Error"
+          actions={
+            <button
+              onClick={() => setErrorModalOpen(false)}
+              className="px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors shadow-soft"
+            >
+              OK
+            </button>
+          }
+        >
+          <p>{errorMessage}</p>
+        </Modal>
+
+        <Modal
+          isOpen={leaveModalOpen}
+          onClose={() => setLeaveModalOpen(false)}
+          title="Leave Household"
+          actions={
+            <>
+              <button
+                onClick={() => setLeaveModalOpen(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors shadow-soft mr-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLeaveHousehold}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-soft"
+              >
+                Leave
+              </button>
+            </>
+          }
+        >
+          <p>Are you sure you want to leave this household? You will lose access to all chores and expenses.</p>
+        </Modal>
+
+        <Modal
+          isOpen={successModalOpen}
+          onClose={handleSuccessClose}
+          title="Success"
+          actions={
+            <button
+              onClick={handleSuccessClose}
+              className="px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 transition-colors shadow-soft"
+            >
+              OK
+            </button>
+          }
+        >
+          <p>{successMessage}</p>
+        </Modal>
       </div>
     </ProtectedRoute>
   );

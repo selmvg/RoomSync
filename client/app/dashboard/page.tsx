@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/api';
 import FinancialSummary from '@/components/FinancialSummary';
 import MyChores from '@/components/MyChores';
+import WallPostList from '@/components/WallPostList';
 
 interface Household {
   id: string;
@@ -44,7 +45,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             <h1 className="text-4xl font-display font-bold text-sage-800 mb-8">Dashboard</h1>
-            
+
             {loading ? (
               <div className="text-center py-12">
                 <p className="text-warm-gray">Loading...</p>
@@ -67,7 +68,10 @@ export default function DashboardPage() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <FinancialSummary />
-                <MyChores />
+                <div className="space-y-6">
+                  <WallPostList readOnly={true} />
+                  <MyChores />
+                </div>
               </div>
             )}
           </div>

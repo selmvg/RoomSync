@@ -15,6 +15,7 @@ interface Expense {
   shares: Array<{
     id: string;
     amount: number;
+    isSettled: boolean;
     user: {
       id: string;
       name: string;
@@ -63,13 +64,16 @@ export default function FinancialSummary() {
         
         // If user paid for this expense, they are owed by others
         if (expense.paidBy.id === user.id) {
-          // User paid the full amount, but others owe their shares
-          const totalShares = expense.shares.reduce((sum, s) => sum + parseFloat(s.amount.toString()), 0);
-          const othersShares = totalShares - shareAmount;
-          owed += othersShares;
+          // User paid the full amount, but others owe their shares (only count unsettled shares)
+          const unsettledOthersShares = expense.shares
+            .filter((s) => s.user.id !== user.id && !s.isSettled)
+            .reduce((sum, s) => sum + parseFloat(s.amount.toString()), 0);
+          owed += unsettledOthersShares;
         } else {
-          // User owes their share
-          owe += shareAmount;
+          // User owes their share (only if not settled)
+          if (!userShare.isSettled) {
+            owe += shareAmount;
+          }
         }
       }
     });

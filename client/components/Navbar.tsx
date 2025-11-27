@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import Notifications from './Notifications';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -25,6 +26,12 @@ export default function Navbar() {
             </div>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
               <Link
+                href="/household"
+                className="text-sage-700 hover:text-terracotta-500 inline-flex items-center px-3 pt-1 border-b-2 border-transparent hover:border-terracotta-300 text-sm font-medium transition-colors"
+              >
+                Household
+              </Link>
+              <Link
                 href="/dashboard"
                 className="text-sage-700 hover:text-terracotta-500 inline-flex items-center px-3 pt-1 border-b-2 border-transparent hover:border-terracotta-300 text-sm font-medium transition-colors"
               >
@@ -37,20 +44,27 @@ export default function Navbar() {
                 Chores
               </Link>
               <Link
+                href="/wall"
+                className="text-sage-700 hover:text-terracotta-500 inline-flex items-center px-3 pt-1 border-b-2 border-transparent hover:border-terracotta-300 text-sm font-medium transition-colors"
+              >
+                Wall
+              </Link>
+              <Link
                 href="/expenses"
                 className="text-sage-700 hover:text-terracotta-500 inline-flex items-center px-3 pt-1 border-b-2 border-transparent hover:border-terracotta-300 text-sm font-medium transition-colors"
               >
                 Expenses
               </Link>
               <Link
-                href="/household"
+                href="/shopping"
                 className="text-sage-700 hover:text-terracotta-500 inline-flex items-center px-3 pt-1 border-b-2 border-transparent hover:border-terracotta-300 text-sm font-medium transition-colors"
               >
-                Household
+                Shopping
               </Link>
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            <Notifications />
             <span className="text-sm text-sage-700 font-medium">{user?.name}</span>
             <button
               onClick={handleLogout}
