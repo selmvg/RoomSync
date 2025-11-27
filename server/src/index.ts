@@ -40,46 +40,47 @@ async function testDatabaseConnection() {
     console.error('   1. Set DATABASE_URL in your .env file');
     console.error('   2. Run: npm run prisma:generate');
     console.error('   3. Run: npm run prisma:migrate');
-    process.exit(1);
-  }
-}
-
-// Routes
-app.use('/auth', authRoutes);
-app.use('/api/households', householdRoutes);
-app.use('/api/chores', choreRoutes);
-app.use('/api/expenses', expenseRoutes);
-app.use('/api/shopping', shoppingRoutes);
-app.use('/api/wall', wallRoutes);
-app.use('/api/notifications', notificationRoutes);
-
-app.get('/health', async (req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: 'ok', database: 'connected' });
-  } catch (error) {
-    res.status(500).json({ status: 'error', database: 'disconnected' });
-  }
-});
-
-const portNumber = parseInt(process.env.PORT || '5000', 10);
-
-async function startServer() {
-  try {
-    console.log("Attempting to connect to database...");
-    await testDatabaseConnection();
-    console.log("Database connected successfully!");
-  } catch (error) {
-    console.error("Database connection failed (Proceeding anyway):", error);
+    // process.exit(1); // Don't kill the process, let it try to start
+    throw error; // Re-throw to be caught by startServer
   }
 
-  // 2. Pass the number, and '0.0.0.0' for the host
-  app.listen(portNumber, '0.0.0.0', () => {
-    console.log(`🚀 Server is running on port ${portNumber}`);
-    console.log(`📡 Health check: http://localhost:${portNumber}/health`);
+  // Routes
+  app.use('/auth', authRoutes);
+  app.use('/api/households', householdRoutes);
+  app.use('/api/chores', choreRoutes);
+  app.use('/api/expenses', expenseRoutes);
+  app.use('/api/shopping', shoppingRoutes);
+  app.use('/api/wall', wallRoutes);
+  app.use('/api/notifications', notificationRoutes);
+
+  app.get('/health', async (req, res) => {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      res.json({ status: 'ok', database: 'connected' });
+    } catch (error) {
+      res.status(500).json({ status: 'error', database: 'disconnected' });
+    }
   });
+
+  const portNumber = parseInt(process.env.PORT || '5000', 10);
+
+  async function startServer() {
+    try {
+      console.log("Attempting to connect to database...");
+      await testDatabaseConnection();
+      console.log("Database connected successfully!");
+    } catch (error) {
+      console.error("Database connection failed (Proceeding anyway):", error);
+    }
+
+    // 2. Pass the number, and '0.0.0.0' for the host
+    app.listen(portNumber, '0.0.0.0', () => {
+      console.log(`🚀 Server is running on port ${portNumber}`);
+      console.log(`📡 Health check: http://localhost:${portNumber}/health`);
+    });
+  }
+
+  startServer();
+
+
 }
-
-startServer();
-
-
