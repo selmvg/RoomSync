@@ -62,18 +62,24 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// Start server
+const portNumber = parseInt(process.env.PORT || '5000', 10);
+
 async function startServer() {
-  await testDatabaseConnection();
-  
-  app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-    console.log(`📡 Health check: http://localhost:${PORT}/health`);
+  try {
+    console.log("Attempting to connect to database...");
+    await testDatabaseConnection();
+    console.log("Database connected successfully!");
+  } catch (error) {
+    console.error("Database connection failed (Proceeding anyway):", error);
+  }
+
+  // 2. Pass the number, and '0.0.0.0' for the host
+  app.listen(portNumber, '0.0.0.0', () => {
+    console.log(`🚀 Server is running on port ${portNumber}`);
+    console.log(`📡 Health check: http://localhost:${portNumber}/health`);
   });
 }
 
-startServer().catch((error) => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
-});
+startServer();
+
 
