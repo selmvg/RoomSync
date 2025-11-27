@@ -5,10 +5,13 @@ export async function apiRequest(
   options: RequestInit = {},
   token?: string | null
 ): Promise<Response> {
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
   };
+
+  if (options.headers) {
+    Object.assign(headers, options.headers);
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
